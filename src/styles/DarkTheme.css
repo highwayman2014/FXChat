@@ -1,0 +1,42 @@
+
+.text-area .content{
+    -fx-background-color: #696969;
+}
+
+.text-area {
+   -fx-text-fill: #F5F5DC;
+}
+
+.text-field {
+ -fx-background-color: #696969;
+   -fx-text-fill: #F5F5DC;
+}
+
+.button{
+    -fx-background-color: #696969;
+    -fx-text-fill: #F5F5DC;
+}
+
+#messageBox {
+    -fx-background-color: #808080;
+}
+
+.menu-bar {
+    -fx-background-color: #808080;
+}
+
+.menu-item {
+    -fx-background-color: #808080;
+}
+
+.menu-item .label{
+    -fx-text-fill: #F5F5DC;
+}
+
+.menu-bar .label{
+    -fx-text-fill: #F5F5DC;
+}
+
+
+
+
