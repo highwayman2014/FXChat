@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -12,8 +13,12 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Чат");
-        primaryStage.setScene(new Scene(root, 400, 550));
+        primaryStage.setScene(new Scene(root, 415, 500));
+        //primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.show();
+
+        //Перемещение окна
+        //com.sun.glass.ui.Window.getWindows().get(0).setUndecoratedMoveRectangle(22);
     }
 
 

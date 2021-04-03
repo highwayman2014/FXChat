@@ -3,7 +3,6 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?scenebuilder-stylesheet /styles/style.css?>
 
 <VBox fx:id="VBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
@@ -22,7 +21,7 @@
       </MenuBar>
       <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="435.0" prefWidth="400.0">
          <content>
-            <TextArea fx:id="textArea" editable="false" prefHeight="434.0" prefWidth="400.0">
+            <TextArea fx:id="textArea" editable="false" prefHeight="443.0" prefWidth="398.0">
                <contextMenu>
                   <ContextMenu>
                     <items>
@@ -32,9 +31,9 @@
                </contextMenu></TextArea>
          </content>
       </ScrollPane>
-      <HBox fx:id="messageBox" prefHeight="82.0" prefWidth="400.0">
+      <HBox fx:id="messageBox" fillHeight="false" prefWidth="400.0">
          <children>
-            <TextField fx:id="textField" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#sendMsg" prefHeight="68.0" prefWidth="272.0" promptText="Введите сообщение...">
+            <TextField fx:id="textField" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#sendMsg" prefWidth="314.0" promptText="Введите сообщение...">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
@@ -44,7 +43,7 @@
             </TextField>
             <Button fx:id="sendBtn" mnemonicParsing="false" onAction="#sendMsg" text="Отправить">
                <HBox.margin>
-                  <Insets left="3.0" top="20.0" />
+                  <Insets left="3.0" top="3.0" />
                </HBox.margin></Button>
          </children>
       </HBox>
