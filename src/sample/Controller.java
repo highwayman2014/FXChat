@@ -112,7 +112,7 @@ public class Controller{
 
         } catch (IOException e) {
             e.printStackTrace();
-            textArea.appendText("В соединении отказано/n");
+            textArea.appendText("В соединении отказано\n");
         }
     }
 
@@ -140,9 +140,14 @@ public class Controller{
         }
         try {
             String login = loginField.getText();
-            out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
-            loginField.clear();
-            passwordField.clear();
+            if(login.contains(" ")){
+                textArea.appendText("Имя пользователя не может содержать пробелы\n");
+
+            }else{
+                out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
+                loginField.clear();
+                passwordField.clear();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -151,7 +156,7 @@ public class Controller{
     public void disconnect(){
         try {
             out.writeUTF("/end");
-            socket.close();
+            //socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
