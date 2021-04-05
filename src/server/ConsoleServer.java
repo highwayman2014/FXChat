@@ -61,8 +61,10 @@ public class ConsoleServer {
 
     public void sendMsgToUser(ClientHandler sender, String targetNick, String msg) {
         for(ClientHandler client:users){
-            if(client.equals(sender) || targetNick.equals(client.getNickname())){
+            if(targetNick.equals(client.getNickname())){
                 client.sendMsg(msg);
+                sender.sendMsg(msg);
+                break;
             }
         }
     }
