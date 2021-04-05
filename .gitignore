@@ -2,3 +2,6 @@
 *.iml
 /out
 /tools
+main
+main-db
+main.db
