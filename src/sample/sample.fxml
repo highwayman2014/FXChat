@@ -19,7 +19,12 @@
           </Menu>
         </menus>
       </MenuBar>
-      <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="435.0" prefWidth="400.0">
+       <HBox fx:id="upperPanel">
+           <TextField HBox.hgrow="ALWAYS" promptText="Логин" fx:id="loginField"/>
+           <PasswordField promptText="Пароль" fx:id="passwordField" onAction="#tryAuth"/>
+           <Button text="Войти" onAction="#tryAuth"/>
+       </HBox>
+       <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="435.0" prefWidth="400.0">
          <content>
             <TextArea fx:id="textArea" editable="false" prefHeight="443.0" prefWidth="398.0">
                <contextMenu>
@@ -31,7 +36,7 @@
                </contextMenu></TextArea>
          </content>
       </ScrollPane>
-      <HBox fx:id="messageBox" fillHeight="false" prefWidth="400.0">
+      <HBox fx:id="messageBox" fillHeight="false" prefWidth="400.0" managed="false" visible="false">
          <children>
             <TextField fx:id="textField" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#sendMsg" prefWidth="314.0" promptText="Введите сообщение...">
                <opaqueInsets>
