@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Objects;
 
 public class ClientHandler {
     private ConsoleServer server;
@@ -28,13 +29,17 @@ public class ClientHandler {
                         if(str.startsWith("/auth ")){
                             String[]tokens = str.split(" ");
                             String nick = AuthService.getNicknameByLoginAndPassword(tokens[1], tokens[2]);
-                            if(nick != null){
-                                sendMsg("/ auth-OK");
-                                setNickname(nick);
-                                server.subscribe(ClientHandler.this);
-                                break;
+                            if(nick == null){
+                                sendMsg("Логин или пароль неверны\n");
                             }else{
-                                sendMsg("Wrong auth data");
+                                setNickname(nick);
+                                if(server.isUserLoggedIn(this)){
+                                    sendMsg("Данный пользователь уже подключен\n");
+                                }else {
+                                    sendMsg("/ auth-OK");
+                                    server.subscribe(ClientHandler.this);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -46,9 +51,19 @@ public class ClientHandler {
                             System.out.printf("Client [%s] disconnected\n", socket.getInetAddress());
                             break;
                         }
-                        System.out.printf("Client [%s] was send '%s'\n", socket.getInetAddress(), str);
-                        //out.writeUTF(str);
-                        server.broadcastMsg(nickname + ": " + str);
+                        if(str.startsWith("@")){
+                            int firstSpaceIndex = str.indexOf(" ");
+                            if(firstSpaceIndex > 0){
+                                String targetNick = str.substring(1, firstSpaceIndex);
+                                server.sendMsgToUser(this, targetNick, nickname
+                                        + ": [Отправлено для " + targetNick + "] "
+                                        + str.substring(firstSpaceIndex + 1));
+                            }
+                        }else{
+                            System.out.printf("Client [%s] was send '%s' to %s\n", socket.getInetAddress(), str, "everybody");
+                            server.broadcastMsg(nickname + ": " + str);
+                        }
+
                     }
                 }catch (IOException e){
                     e.printStackTrace();;
@@ -87,5 +102,22 @@ public class ClientHandler {
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientHandler that = (ClientHandler) o;
+        return nickname.equals(that.nickname);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nickname);
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 }

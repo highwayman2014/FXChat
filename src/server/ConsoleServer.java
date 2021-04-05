@@ -49,11 +49,21 @@ public class ConsoleServer {
         users.remove(client);
     }
 
+    public boolean isUserLoggedIn(ClientHandler client){
+        return users.contains(client);
+    }
+
     public void broadcastMsg(String msg){
         for(ClientHandler client:users){
             client.sendMsg(msg);
         }
-
     }
 
+    public void sendMsgToUser(ClientHandler sender, String targetNick, String msg) {
+        for(ClientHandler client:users){
+            if(client.equals(sender) || targetNick.equals(client.getNickname())){
+                client.sendMsg(msg);
+            }
+        }
+    }
 }
