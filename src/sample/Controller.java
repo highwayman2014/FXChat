@@ -142,6 +142,7 @@ public class Controller{
             String login = loginField.getText();
             if(login.contains(" ")){
                 textArea.appendText("Имя пользователя не может содержать пробелы\n");
+
             }else{
                 out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
                 loginField.clear();
