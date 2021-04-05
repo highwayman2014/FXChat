@@ -156,7 +156,7 @@ public class Controller{
     public void disconnect(){
         try {
             out.writeUTF("/end");
-            socket.close();
+            //socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
