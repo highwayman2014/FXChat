@@ -1,11 +1,11 @@
 package sample;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -13,12 +13,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
+import java.util.*;
 
 
-public class Controller{
+public class Controller implements Initializable {
 
     @FXML
-    TextArea textArea;
+    TextArea chatArea;
     @FXML
     TextField textField;
     @FXML
@@ -33,6 +35,8 @@ public class Controller{
     TextField loginField;
     @FXML
     PasswordField passwordField;
+    @FXML
+    ListView<String> clientList;
 
     private boolean darkTheme = false;
     private boolean isAuthorized = false;
@@ -43,12 +47,14 @@ public class Controller{
     public static final String ADDRESS = "localhost";
     public static final int PORT = 6001;
 
+    private List<TextArea> textAreas;
+
     @FXML
     void sendMsg(){
         try {
             if (!textField.getText().isEmpty()) {
                 out.writeUTF(textField.getText());
-                //textArea.appendText("Вы: \t" + textField.getText() + "\n");
+                //chatArea.appendText("Вы: \t" + textField.getText() + "\n");
                 textField.clear();
             }
             textField.requestFocus();
@@ -68,6 +74,8 @@ public class Controller{
             darkTheme = false;
             menuChangeTheme.setText("Темная");
         }
+
+
     }
 
     public void connect() {
@@ -77,6 +85,8 @@ public class Controller{
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
+            setAuthorized(false);
+
             new Thread(() -> {
                 try{
 
@@ -84,10 +94,12 @@ public class Controller{
                         String str = in.readUTF();
                         if("/ auth-OK".equals(str)){
                             setAuthorized(true);
-                            textArea.clear();
+                            chatArea.clear();
                             break;
                         }else{
-                            textArea.appendText(str + "\n");
+                            for(TextArea ta:textAreas){
+                                chatArea.appendText(str + "\n");
+                            }
                         }
                     }
 
@@ -96,7 +108,20 @@ public class Controller{
                         if("/serverClosed".equals(str)){
                             break;
                         }
-                        textArea.appendText(str + "\n");
+                        if(str.startsWith("/clientList")){
+                            String[] tokens = str.split(" ");
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    clientList.getItems().clear();
+                                    for (int i = 1; i < tokens.length; i++) {
+                                        clientList.getItems().add(tokens[i]);
+                                    }
+                                }
+                            });
+                        } else {
+                            chatArea.appendText(str + "\n");
+                        }
                     }
                 }catch(IOException e){
                     e.printStackTrace();
@@ -109,10 +134,9 @@ public class Controller{
                     setAuthorized(false);
                 };
             }).start();
-
         } catch (IOException e) {
             e.printStackTrace();
-            textArea.appendText("В соединении отказано\n");
+            chatArea.appendText("В соединении отказано\n");
         }
     }
 
@@ -121,14 +145,22 @@ public class Controller{
         if(!isAuthorized){
             upperPanel.setVisible(true);
             upperPanel.setManaged(true);
+
             messageBox.setVisible(false);
             messageBox.setManaged(false);
 
-        }else{
+            clientList.setVisible(false);
+            clientList.setManaged(false);
+
+        } else {
             upperPanel.setVisible(false);
             upperPanel.setManaged(false);
+
             messageBox.setVisible(true);
             messageBox.setManaged(true);
+
+            clientList.setVisible(true);
+            clientList.setManaged(true);
         }
 
     }
@@ -141,9 +173,9 @@ public class Controller{
         try {
             String login = loginField.getText();
             if(login.contains(" ")){
-                textArea.appendText("Имя пользователя не может содержать пробелы\n");
+                chatArea.appendText("Имя пользователя не может содержать пробелы\n");
 
-            }else{
+            } else {
                 out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
                 loginField.clear();
                 passwordField.clear();
@@ -154,12 +186,35 @@ public class Controller{
     }
 
     public void disconnect(){
-        try {
-            out.writeUTF("/end");
-            //socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (socket != null) {
+            if(!socket.isClosed()) {
+                try {
+                    out.writeUTF("/end");
+                    //socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+    
+    public void logUp(ActionEvent actionEvent) {
+        RegistrationStage rs = new RegistrationStage(out);
+        rs.show();
+    }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        setAuthorized(false);
+        textAreas = new ArrayList<>();
+        textAreas.add(chatArea);
+    }
+
+
+    public void selectClient(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+            MiniStage ms = new MiniStage(clientList.getSelectionModel().getSelectedItem(), out, textAreas);
+            ms.show();
+        }
+    }
 }

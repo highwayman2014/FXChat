@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ClientHandler {
@@ -13,6 +15,8 @@ public class ClientHandler {
     private DataOutputStream out;
     private String nickname;
 
+    private List<String> blackList;
+
     public ClientHandler(ConsoleServer server, Socket socket) {
 
         try {
@@ -20,13 +24,15 @@ public class ClientHandler {
             this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
+            this.blackList = new ArrayList<>();
 
             new Thread(()->{
+                boolean isExit = false;
                 try{
                     // auth - /auth login pass
                     while (true){
                         String str = in.readUTF();
-                        if(str.startsWith("/auth ")){
+                        if(str.startsWith("/auth")){
                             String[]tokens = str.split(" ");
                             String nick = AuthService.getNicknameByLoginAndPassword(tokens[1], tokens[2]);
                             if(nick == null){
@@ -42,28 +48,47 @@ public class ClientHandler {
                                 }
                             }
                         }
+                        // регистрация
+                        if (str.startsWith("/signup ")) {
+                            String[] tokens = str.split(" ");
+                            int result = AuthService.addUser(tokens[1], tokens[2], tokens[3]);
+                            if (result > 0) {
+                                sendMsg("Регистрация прошла успешно");
+                            } else {
+                                sendMsg("Прии регистрации произошла ошибка");
+                            }
+                        }
+                        if("/end".equals(str)){
+                            isExit = true;
+                        }
                     }
 
-                    while (true){
-                        String str = in.readUTF();
-                        if("/end".equals(str)){
-                            out.writeUTF("/serverClosed");
-                            System.out.printf("Client [%s] disconnected\n", socket.getInetAddress());
-                            break;
-                        }
-                        if(str.startsWith("@")){
-                            int firstSpaceIndex = str.indexOf(" ");
-                            if(firstSpaceIndex > 0){
-                                String targetNick = str.substring(1, firstSpaceIndex);
-                                server.sendMsgToUser(this, targetNick, nickname
-                                        + ": [Отправлено для " + targetNick + "] "
-                                        + str.substring(firstSpaceIndex + 1));
+                    if(!isExit){
+                        while (true){
+                            String str = in.readUTF();
+                            if(str.startsWith("/") || str.startsWith("@")){
+                                if("/end".equals(str)){
+                                    out.writeUTF("/serverClosed");
+                                    System.out.printf("Client [%s] disconnected\n", socket.getInetAddress());
+                                    break;
+                                }else if (str.startsWith("@")){
+                                    int firstSpaceIndex = str.indexOf(" ");
+                                    if(firstSpaceIndex > 0){
+                                        String targetNick = str.substring(1, firstSpaceIndex);
+                                        server.sendMsgToUser(this, targetNick, nickname
+                                                + ": [Отправлено для " + targetNick + "] "
+                                                + str.substring(firstSpaceIndex + 1));
+                                    }
+                                } else if("/blacklist".equals(str)){
+                                    String[] tokens = str.split(" ");
+                                    blackList.add(tokens[1]);
+                                    sendMsg("You added " + tokens[1] + " to blacklist");
+                                }
+                            } else {
+                                server.broadcastMsg(this, nickname + ": " + str);
                             }
-                        }else{
                             System.out.printf("Client [%s] was send '%s' to %s\n", socket.getInetAddress(), str, "everybody");
-                            server.broadcastMsg(nickname + ": " + str);
                         }
-
                     }
                 }catch (IOException e){
                     e.printStackTrace();;
@@ -119,5 +144,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public boolean checkBlacklist(String nickname) {
+        return blackList.contains(nickname);
     }
 }
