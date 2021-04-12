@@ -44,13 +44,13 @@ public class ConsoleServer {
 
     public void subscribe(ClientHandler client){
         users.add(client);
-        System.out.printf("User [%s] connected", client.getNickname());
+        System.out.printf("User [%s] connected\n", client.getNickname());
         broadcastClientsList();
     }
 
     public void unsubscribe(ClientHandler client){
         users.remove(client);
-        System.out.printf("User [%s] disconnected", client.getNickname());
+        System.out.printf("User [%s] disconnected\n", client.getNickname());
         broadcastClientsList();
     }
 
@@ -64,13 +64,17 @@ public class ConsoleServer {
                 client.sendMsg(msg);
             }
         }
+        AuthService.saveMsgInDB(from.getNickname(), "@everybody@", msg);
     }
 
     public void sendMsgToUser(ClientHandler sender, String targetNick, String msg) {
         for(ClientHandler client:users){
             if(targetNick.equals(client.getNickname())){
-                client.sendMsg(msg);
-                sender.sendMsg(msg);
+                if(!client.checkBlacklist(sender.getNickname())){
+                    client.sendMsg(msg);
+                    sender.sendMsg(msg);
+                    AuthService.saveMsgInDB(sender.getNickname(), client.getNickname(), msg);
+                }
                 break;
             }
         }

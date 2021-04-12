@@ -13,6 +13,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.*;
 
@@ -89,20 +91,18 @@ public class Controller implements Initializable {
 
             new Thread(() -> {
                 try{
-
-                    while (true){
+                    while (true) {
                         String str = in.readUTF();
-                        if("/ auth-OK".equals(str)){
+                        if ("/ auth-OK".equals(str)) {
                             setAuthorized(true);
                             chatArea.clear();
                             break;
-                        }else{
-                            for(TextArea ta:textAreas){
+                        } else {
+                            for (TextArea ta : textAreas) {
                                 chatArea.appendText(str + "\n");
                             }
                         }
                     }
-
                     while (true){
                         String str = in.readUTF();
                         if("/serverClosed".equals(str)){
@@ -161,6 +161,7 @@ public class Controller implements Initializable {
 
             clientList.setVisible(true);
             clientList.setManaged(true);
+
         }
 
     }
@@ -205,7 +206,7 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setAuthorized(false);
+        //setAuthorized(false);
         textAreas = new ArrayList<>();
         textAreas.add(chatArea);
     }

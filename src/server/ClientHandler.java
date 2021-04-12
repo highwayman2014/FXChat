@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,41 +26,60 @@ public class ClientHandler {
             this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            this.blackList = new ArrayList<>();
 
             new Thread(()->{
                 boolean isExit = false;
                 try{
+                    try {
+                        socket.setSoTimeout(120_000);
+                    } catch (SocketException e) {
+                        e.printStackTrace();
+                    }
+
                     // auth - /auth login pass
                     while (true){
-                        String str = in.readUTF();
-                        if(str.startsWith("/auth")){
-                            String[]tokens = str.split(" ");
-                            String nick = AuthService.getNicknameByLoginAndPassword(tokens[1], tokens[2]);
-                            if(nick == null){
-                                sendMsg("Логин или пароль неверны\n");
-                            }else{
-                                setNickname(nick);
-                                if(server.isUserLoggedIn(this)){
-                                    sendMsg("Данный пользователь уже подключен\n");
-                                }else {
-                                    sendMsg("/ auth-OK");
-                                    server.subscribe(ClientHandler.this);
-                                    break;
+                        try {
+                            String str = in.readUTF();
+                            if(str.startsWith("/auth")) {
+                                String[] tokens = str.split(" ");
+                                String nick = AuthService.getNicknameByLoginAndPassword(tokens[1], tokens[2]);
+                                if (nick == null) {
+                                    sendMsg("Логин или пароль неверны\n");
+                                } else {
+                                    setNickname(nick);
+
+                                    // заполнение черного списка из БД
+                                    this.blackList = AuthService.getBlacklist(nick);
+
+                                    if (server.isUserLoggedIn(this)) {
+                                        sendMsg("Данный пользователь уже подключен\n");
+                                    } else {
+                                        sendMsg("/ auth-OK");
+                                        server.subscribe(ClientHandler.this);
+
+                                        try {
+                                            socket.setSoTimeout(0);
+                                        } catch (SocketException e) {
+                                            e.printStackTrace();
+                                        }
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        // регистрация
-                        if (str.startsWith("/signup ")) {
-                            String[] tokens = str.split(" ");
-                            int result = AuthService.addUser(tokens[1], tokens[2], tokens[3]);
-                            if (result > 0) {
-                                sendMsg("Регистрация прошла успешно");
-                            } else {
-                                sendMsg("Прии регистрации произошла ошибка");
+                            // регистрация
+                            if (str.startsWith("/signup ")) {
+                                String[] tokens = str.split(" ");
+                                int result = AuthService.addUser(tokens[1], tokens[2], tokens[3]);
+                                if (result > 0) {
+                                    sendMsg("Регистрация прошла успешно");
+                                } else {
+                                    sendMsg("Прии регистрации произошла ошибка");
+                                }
                             }
-                        }
-                        if("/end".equals(str)){
+                            if("/end".equals(str)){
+                                isExit = true;
+                            }
+                        }catch(SocketTimeoutException e){
                             isExit = true;
                         }
                     }
@@ -79,9 +100,11 @@ public class ClientHandler {
                                                 + ": [Отправлено для " + targetNick + "] "
                                                 + str.substring(firstSpaceIndex + 1));
                                     }
-                                } else if("/blacklist".equals(str)){
+                                } else if(str.startsWith("/blacklist ")){
                                     String[] tokens = str.split(" ");
                                     blackList.add(tokens[1]);
+                                    // добавление записи в БД
+                                    AuthService.updateBlacklistInDB(nickname, tokens[1]);
                                     sendMsg("You added " + tokens[1] + " to blacklist");
                                 }
                             } else {

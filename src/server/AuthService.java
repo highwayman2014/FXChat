@@ -1,6 +1,8 @@
 package server;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthService {
     private static Connection connection;
@@ -58,4 +60,47 @@ public class AuthService {
             e.printStackTrace();
         }
     }
+
+    public static List<String> getBlacklist(String nick){
+        List<String> blacklist = new ArrayList<>();
+        String query = String.format("select blockedUser from blacklist where user = '%s'", nick);
+        try {
+            ResultSet rs = statement.executeQuery(query);
+
+            while(rs.next()){
+                blacklist.add(rs.getString(1));
+            }
+            return blacklist;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return blacklist;
+    }
+
+    public static void updateBlacklistInDB(String nick, String blockedNick){
+        try {
+            String query = "INSERT INTO blacklist (user, blockedUser) VALUES (?, ?);";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, nick);
+            ps.setString(2, blockedNick);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveMsgInDB(String sender, String receiver, String msg){
+        try {
+            String query = "INSERT INTO messageLog (sender, receiver, message) VALUES (?, ?, ?);";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, sender);
+            ps.setString(2, receiver);
+            ps.setString(3, msg);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
