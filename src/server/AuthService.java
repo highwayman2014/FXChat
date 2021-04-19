@@ -1,6 +1,8 @@
 package server;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthService {
     private static Connection connection;
@@ -49,6 +51,94 @@ public class AuthService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /** Обновляет таблицу blacklist в базе данных
+     *
+     * @param AddOrDetete - если Истина, то добавление, если ложь, то удаление
+     */
+    public static int updateBlacklistInDB(String nick, String blockedNick, Boolean AddOrDetete){
+        PreparedStatement ps = null;
+        String query;
+        try{
+            if(AddOrDetete){
+                query = "INSERT INTO blacklist (user, blockedUser) VALUES (?, ?);";
+            } else {
+                query = "DELETE FROM blacklist WHERE user = ? AND blockedUser = ?;";
+            }
+            ps = connection.prepareStatement(query);
+            ps.setString(1, nick);
+            ps.setString(2, blockedNick);
+            return ps.executeUpdate();
+        } catch (SQLException e){
+            e.printStackTrace();
+        } finally {
+            statementClose(ps);
+        }
+        return 0;
+    }
+
+    public static List<String> getBlacklist(String nick){
+        List<String> blacklist = new ArrayList<>();
+        String query = "SELECT blockedUser FROM blacklist WHERE user = ?";
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setString(1, nick);
+            rs = ps.executeQuery(query);
+
+            while(rs.next()){
+                blacklist.add(rs.getString("blockedUser"));
+            }
+            return blacklist;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            resultSetClose(rs);
+            statementClose(ps);
+        }
+        return blacklist;
+    }
+
+    /** Сохраняет сообщение в БД
+     *
+     * @param sender - никнейм отправителя
+     * @param receiver - никнейм получателя
+     * @param msg - сообщение
+     */
+    public static int saveMsgInDB(String sender, String receiver, String msg){
+        String query = "INSERT INTO messageLog (sender, receiver, message) VALUES (?, ?, ?);";
+        PreparedStatement ps = null;
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setString(1, sender);
+            ps.setString(2, receiver);
+            ps.setString(3, msg);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            statementClose(ps);
+        }
+        return 0;
+    }
+
+    private static void resultSetClose(ResultSet rs) {
+        try {
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void statementClose(PreparedStatement ps) {
+        try {
+            ps.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void disconnect(){

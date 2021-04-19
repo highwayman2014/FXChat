@@ -64,13 +64,23 @@ public class ConsoleServer {
                 client.sendMsg(msg);
             }
         }
+        // Сохраним общее сообщение в виде одной записи
+        if (AuthService.saveMsgInDB(from.getNickname(), "@everyone@", msg) == 0){
+            System.out.println("Error writing message in DB");
+        }
     }
 
     public void sendMsgToUser(ClientHandler sender, String targetNick, String msg) {
         for(ClientHandler client:users){
             if(targetNick.equals(client.getNickname())){
-                client.sendMsg(msg);
-                sender.sendMsg(msg);
+                // Проверим черный список перед отправкой сообщения
+                if(!client.checkBlacklist(sender.getNickname())){
+                    client.sendMsg(msg);
+                    sender.sendMsg(msg);
+                    if (AuthService.saveMsgInDB(sender.getNickname(), client.getNickname(), msg) == 0){
+                        System.out.println("Error writing message in DB");
+                    }
+                }
                 break;
             }
         }

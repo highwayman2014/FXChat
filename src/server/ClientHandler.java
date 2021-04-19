@@ -24,11 +24,12 @@ public class ClientHandler {
             this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            this.blackList = new ArrayList<>();
+            //this.blackList = new ArrayList<>();
 
             new Thread(()->{
                 boolean isExit = false;
                 try{
+                    socket.setSoTimeout(120_000);
                     // auth - /auth login pass
                     while (true){
                         String str = in.readUTF();
@@ -43,6 +44,9 @@ public class ClientHandler {
                                     sendMsg("Данный пользователь уже подключен\n");
                                 }else {
                                     sendMsg("/ auth-OK");
+                                    // заполнение черного списка из БД
+                                    this.blackList = AuthService.getBlacklist(nick);
+                                    socket.setSoTimeout(0);
                                     server.subscribe(ClientHandler.this);
                                     break;
                                 }
@@ -81,8 +85,21 @@ public class ClientHandler {
                                     }
                                 } else if("/blacklist".equals(str)){
                                     String[] tokens = str.split(" ");
-                                    blackList.add(tokens[1]);
-                                    sendMsg("You added " + tokens[1] + " to blacklist");
+                                    if(blackList.contains(tokens[1])){
+                                        if(AuthService.updateBlacklistInDB(nickname, tokens[1], false) == 1){
+                                            blackList.remove(tokens[1]);
+                                            sendMsg("Вы исключили пользователя " + tokens[1] + " из черного списка");
+                                        } else {
+                                            sendMsg("Произошла ошибка при операции с базой данных");
+                                        }
+                                    } else {
+                                        if(AuthService.updateBlacklistInDB(nickname, tokens[1], true) == 1){
+                                            blackList.add(tokens[1]);
+                                            sendMsg("Вы добавили пользователя " + tokens[1] + " в черный список");
+                                        } else {
+                                            sendMsg("Произошла ошибка при операции с базой данных");
+                                        }
+                                    }
                                 }
                             } else {
                                 server.broadcastMsg(this, nickname + ": " + str);
