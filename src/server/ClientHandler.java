@@ -20,7 +20,7 @@ public class ClientHandler {
         try {
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            this.blackList = new ArrayList<>();
+            //this.blackList = new ArrayList<>();
 
             new Thread(()->{
                 boolean isExit = false;
