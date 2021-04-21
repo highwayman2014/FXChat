@@ -16,7 +16,7 @@ public class ConsoleServer {
         try {
             AuthService.connect();
             server = new ServerSocket(6001);
-            System.out.println("Server started");
+            System.out.println("Server started\n");
 
             while (true){
                 socket = server.accept();
@@ -44,13 +44,13 @@ public class ConsoleServer {
 
     public void subscribe(ClientHandler client){
         users.add(client);
-        System.out.printf("User [%s] connected", client.getNickname());
+        System.out.printf("User [%s] connected\n", client.getNickname());
         broadcastClientsList();
     }
 
     public void unsubscribe(ClientHandler client){
         users.remove(client);
-        System.out.printf("User [%s] disconnected", client.getNickname());
+        System.out.printf("User [%s] disconnected\n", client.getNickname());
         broadcastClientsList();
     }
 
@@ -60,13 +60,13 @@ public class ConsoleServer {
 
     public void broadcastMsg(ClientHandler from, String msg){
         for(ClientHandler client:users){
-            if(!client.checkBlacklist(from.getNickname())){
+            if(client.checkBlacklist(from.getNickname())){
                 client.sendMsg(msg);
             }
         }
         // Сохраним общее сообщение в виде одной записи
         if (AuthService.saveMsgInDB(from.getNickname(), "@everyone@", msg) == 0){
-            System.out.println("Error writing message in DB");
+            System.out.println("Error writing message in DB\n");
         }
     }
 
@@ -74,11 +74,11 @@ public class ConsoleServer {
         for(ClientHandler client:users){
             if(targetNick.equals(client.getNickname())){
                 // Проверим черный список перед отправкой сообщения
-                if(!client.checkBlacklist(sender.getNickname())){
+                if(client.checkBlacklist(sender.getNickname())){
                     client.sendMsg(msg);
                     sender.sendMsg(msg);
                     if (AuthService.saveMsgInDB(sender.getNickname(), client.getNickname(), msg) == 0){
-                        System.out.println("Error writing message in DB");
+                        System.out.println("Error writing message in DB\n");
                     }
                 }
                 break;

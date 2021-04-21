@@ -1,7 +1,6 @@
 package sample;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -98,7 +97,7 @@ public class Controller implements Initializable {
                             break;
                         }else{
                             for(TextArea ta:textAreas){
-                                chatArea.appendText(str + "\n");
+                                ta.appendText(str + "\n");
                             }
                         }
                     }
@@ -110,13 +109,10 @@ public class Controller implements Initializable {
                         }
                         if(str.startsWith("/clientList")){
                             String[] tokens = str.split(" ");
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    clientList.getItems().clear();
-                                    for (int i = 1; i < tokens.length; i++) {
-                                        clientList.getItems().add(tokens[i]);
-                                    }
+                            Platform.runLater(() -> {
+                                clientList.getItems().clear();
+                                for (int i = 1; i < tokens.length; i++) {
+                                    clientList.getItems().add(tokens[i]);
                                 }
                             });
                         } else {
@@ -132,7 +128,7 @@ public class Controller implements Initializable {
                         e.printStackTrace();
                     }
                     setAuthorized(false);
-                };
+                }
             }).start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -165,7 +161,7 @@ public class Controller implements Initializable {
 
     }
 
-    public void tryAuth(ActionEvent actionEvent) {
+    public void tryAuth() {
         if(socket == null || socket.isClosed()){
             connect();
 
@@ -198,7 +194,7 @@ public class Controller implements Initializable {
         }
     }
     
-    public void logUp(ActionEvent actionEvent) {
+    public void logUp() {
         RegistrationStage rs = new RegistrationStage(out);
         rs.show();
     }

@@ -55,13 +55,13 @@ public class AuthService {
 
     /** Обновляет таблицу blacklist в базе данных
      *
-     * @param AddOrDetete - если Истина, то добавление, если ложь, то удаление
+     * @param AddOrDelete - если Истина, то добавление, если ложь, то удаление
      */
-    public static int updateBlacklistInDB(String nick, String blockedNick, Boolean AddOrDetete){
+    public static int updateBlacklistInDB(String nick, String blockedNick, Boolean AddOrDelete){
         PreparedStatement ps = null;
         String query;
         try{
-            if(AddOrDetete){
+            if(AddOrDelete){
                 query = "INSERT INTO blacklist (user, blockedUser) VALUES (?, ?);";
             } else {
                 query = "DELETE FROM blacklist WHERE user = ? AND blockedUser = ?;";
@@ -86,7 +86,7 @@ public class AuthService {
         try {
             ps = connection.prepareStatement(query);
             ps.setString(1, nick);
-            rs = ps.executeQuery(query);
+            rs = ps.executeQuery();
 
             while(rs.next()){
                 blacklist.add(rs.getString("blockedUser"));
