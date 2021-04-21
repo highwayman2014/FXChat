@@ -86,7 +86,7 @@ public class AuthService {
         try {
             ps = connection.prepareStatement(query);
             ps.setString(1, nick);
-            rs = ps.executeQuery(query);
+            rs = ps.executeQuery();
 
             while(rs.next()){
                 blacklist.add(rs.getString("blockedUser"));

@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class ClientHandler {
-    private ConsoleServer server;
-    private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
     private String nickname;
@@ -20,8 +18,6 @@ public class ClientHandler {
     public ClientHandler(ConsoleServer server, Socket socket) {
 
         try {
-            this.server = server;
-            this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
             this.blackList = new ArrayList<>();
@@ -59,7 +55,7 @@ public class ClientHandler {
                             if (result > 0) {
                                 sendMsg("Регистрация прошла успешно");
                             } else {
-                                sendMsg("Прии регистрации произошла ошибка");
+                                sendMsg("При регистрации произошла ошибка");
                             }
                         }
                         if("/end".equals(str)){
@@ -108,7 +104,7 @@ public class ClientHandler {
                         }
                     }
                 }catch (IOException e){
-                    e.printStackTrace();;
+                    e.printStackTrace();
                 }finally {
                     try {
                         in.close();
@@ -164,6 +160,6 @@ public class ClientHandler {
     }
 
     public boolean checkBlacklist(String nickname) {
-        return blackList.contains(nickname);
+        return !blackList.contains(nickname);
     }
 }

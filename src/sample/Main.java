@@ -6,7 +6,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public class Main extends Application {
@@ -18,12 +17,9 @@ public class Main extends Application {
         primaryStage.setTitle("Чат");
         primaryStage.setScene(new Scene(root, 415, 500));
         //primaryStage.initStyle(StageStyle.TRANSPARENT);
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                Controller controller = loader.getController();
-                controller.disconnect();
-            }
+        primaryStage.setOnCloseRequest(event -> {
+            Controller controller = loader.getController();
+            controller.disconnect();
         });
         primaryStage.show();
 
