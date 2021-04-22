@@ -12,6 +12,7 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String nickname;
+    private FileLog fileLog;
 
     private List<String> blackList;
 
@@ -45,6 +46,10 @@ public class ClientHandler {
                                     this.blackList = AuthService.getBlacklist(nick);
                                     socket.setSoTimeout(0);
                                     server.subscribe(ClientHandler.this);
+
+                                    // инициализируем класс лог-файла и выведем последние 100 сообщений
+                                    this.fileLog = new FileLog(ClientHandler.this);
+
                                     break;
                                 }
                             }
@@ -162,5 +167,9 @@ public class ClientHandler {
 
     public boolean checkBlacklist(String nickname) {
         return !blackList.contains(nickname);
+    }
+
+    public void logMessage(String msg){
+        fileLog.writeMessageInLog(msg);
     }
 }
