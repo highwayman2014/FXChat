@@ -62,6 +62,7 @@ public class ConsoleServer {
         for(ClientHandler client:users){
             if(client.checkBlacklist(from.getNickname())){
                 client.sendMsg(msg);
+                client.logMessage(msg);
             }
         }
         // Сохраним общее сообщение в виде одной записи
@@ -76,7 +77,9 @@ public class ConsoleServer {
                 // Проверим черный список перед отправкой сообщения
                 if(client.checkBlacklist(sender.getNickname())){
                     client.sendMsg(msg);
+                    client.logMessage(msg);
                     sender.sendMsg(msg);
+                    sender.logMessage(msg);
                     if (AuthService.saveMsgInDB(sender.getNickname(), client.getNickname(), msg) == 0){
                         System.out.println("Error writing message in DB\n");
                     }
